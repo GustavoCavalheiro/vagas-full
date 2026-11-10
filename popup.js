@@ -39,9 +39,9 @@ $('help').addEventListener('click', (e) => {
   if (a) { e.preventDefault(); chrome.tabs.create({ url: a.dataset.open }); }
 });
 $('copyPix').onclick = async () => {
-  await navigator.clipboard.writeText($('pixKey').textContent.replace(/\D/g, ''));
+  await navigator.clipboard.writeText($('copyPix').dataset.pix);
   $('copyPix').textContent = 'Copiado';
-  toast('Chave Pix copiada');
+  toast('Código Pix copiado. Cole no app do banco.');
   setTimeout(() => { $('copyPix').textContent = 'Copiar'; }, 1800);
 };
 

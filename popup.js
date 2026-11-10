@@ -25,6 +25,26 @@ $('lMin').onclick = () => $('newSection').classList.toggle('collapsed');
 $('lMax').onclick = () => { chrome.tabs.create({ url: chrome.runtime.getURL('popup.html?tab=1') }); window.close(); };
 window.addEventListener('scroll', () => $('titlebar').classList.toggle('scrolled', scrollY > 4), { passive: true });
 
+// ---------- ajuda ----------
+function setHelp(open) {
+  $('help').classList.toggle('open', open);
+  $('help').setAttribute('aria-hidden', String(!open));
+  if (open) { $('help').scrollTop = 0; $('helpBack').focus({ preventScroll: true }); } else $('helpBtn').focus({ preventScroll: true });
+}
+$('helpBtn').onclick = () => setHelp(true);
+$('helpBack').onclick = () => setHelp(false);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('help').classList.contains('open')) setHelp(false); });
+$('help').addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-open]');
+  if (a) { e.preventDefault(); chrome.tabs.create({ url: a.dataset.open }); }
+});
+$('copyPix').onclick = async () => {
+  await navigator.clipboard.writeText($('pixKey').textContent.replace(/\D/g, ''));
+  $('copyPix').textContent = 'Copiado';
+  toast('Chave Pix copiada');
+  setTimeout(() => { $('copyPix').textContent = 'Copiar'; }, 1800);
+};
+
 // ---------- forma de envio ----------
 const show = (el, on) => el.classList.toggle('hidden', !on);
 function syncType() {

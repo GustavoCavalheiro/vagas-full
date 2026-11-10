@@ -190,6 +190,38 @@
 
   .collapsed { display: none; }
 
+  /* ---------- ajuda ---------- */
+  .tb-right { display: flex; justify-content: flex-end; padding-right: 14px; }
+  .help-btn {
+    width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0;
+    background: var(--fill); color: var(--text-2); font-size: 12px; font-weight: 600; line-height: 20px;
+    transition: transform .12s ease-out, color .15s;
+  }
+  .help-btn:hover { color: var(--accent); }
+  .help-btn:active { transform: scale(.9); }
+  .sheet {
+    position: fixed; inset: 0; z-index: 30; background: var(--bg); overflow-y: auto;
+    transform: translateX(100%); visibility: hidden;
+    transition: transform .45s var(--spring), visibility 0s linear .45s;
+  }
+  .sheet.open { transform: none; visibility: visible; transition: transform .45s var(--spring), visibility 0s; }
+  body.tab { position: relative; }
+  body.tab .sheet { position: absolute; }
+  .sheet-bar { grid-template-columns: 90px 1fr 90px; }
+  .back { border: 0; background: none; color: var(--accent); font-size: 13px; padding: 0 0 0 10px; font-weight: 400; }
+  .back:active { opacity: .5; }
+  .sheet-body { padding: 0 16px 20px; }
+  .sheet { overflow-x: hidden; inset: 0 auto 0 0; width: 380px; }
+  body.tab .sheet { inset: 0; width: 100%; }
+  .prose { padding: 10px 14px; color: var(--text); overflow-wrap: anywhere; min-width: 0; }
+  .prose p { margin: 0; } .prose p + p { margin-top: 8px; }
+  .prose ol { margin: 0; padding-left: 18px; } .prose li + li { margin-top: 6px; }
+  .prose li::marker { color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .prose code { font: 11.5px ui-monospace, "SF Mono", Consolas, monospace; background: var(--fill); padding: 1px 4px; border-radius: 4px; }
+  .prose a { color: var(--accent); text-decoration: none; }
+  .pix { font-variant-numeric: tabular-nums; color: var(--text-2); letter-spacing: .01em; }
+  .thanks { text-align: center; color: var(--text-3); font-size: 12px; margin: 16px 0 0; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
   }
@@ -212,8 +244,68 @@
     </button>
   </div>
   <div class="title">Vagas Full</div>
-  <div></div>
+  <div class="tb-right"><button class="help-btn" id="helpBtn" title="Como usar" aria-label="Como usar">?</button></div>
 </div>
+
+<section class="sheet" id="help" aria-hidden="true" aria-label="Como usar">
+  <div class="titlebar sheet-bar">
+    <div><button class="back" id="helpBack">‹ Voltar</button></div>
+    <div class="title">Como usar</div>
+    <div></div>
+  </div>
+  <div class="sheet-body">
+    <div class="section-head"><span>Antes de começar</span></div>
+    <div class="group prose">
+      <p>Entre na <b>Central de Vendedores</b> do Mercado Livre neste Chrome. A extensão usa o seu próprio login para consultar a agenda.</p>
+    </div>
+
+    <div class="section-head"><span>Cadastrar um envio</span></div>
+    <div class="group prose">
+      <ol>
+        <li>Abra a página do envio no Mercado Livre e toque em <b>Usar aba atual</b>, ou digite o número.</li>
+        <li>Escolha a <b>forma de envio</b>. Em Transportadora, toque em ↻ para carregar as suas.</li>
+        <li>Defina o <b>período</b>. Datas preferidas e horário são opcionais.</li>
+        <li>Toque em <b>Adicionar</b>. A primeira verificação acontece na hora.</li>
+      </ol>
+    </div>
+
+    <div class="section-head"><span>Aviso ou automático</span></div>
+    <div class="group prose">
+      <p><b>Desligado:</b> quando aparece uma vaga no filtro, você recebe notificação e som (e Telegram, se configurado).</p>
+      <p><b>Agendar automaticamente:</b> a extensão confirma a primeira vaga que atender ao filtro e para de monitorar aquele envio.</p>
+      <p><b>Datas preferidas</b> são testadas primeiro, na ordem digitada. Com <b>Somente preferidas</b>, nenhuma outra data é aceita.</p>
+    </div>
+
+    <div class="section-head"><span>Aviso no celular</span></div>
+    <div class="group prose">
+      <ol>
+        <li>No Telegram, fale com <b>@BotFather</b>, envie <code>/newbot</code> e copie o token.</li>
+        <li>Mande qualquer mensagem para o seu bot.</li>
+        <li>Abra <code>api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code> e copie o número de <code>"chat":{"id"</code>.</li>
+        <li>Cole os dois em <b>Ajustes</b> e toque em <b>Testar</b>.</li>
+      </ol>
+    </div>
+
+    <div class="section-head"><span>Dicas</span></div>
+    <div class="group prose">
+      <p>Pode fechar esta janela: o monitoramento continua em segundo plano. Mantenha o Chrome aberto e o computador sem suspender.</p>
+      <p>Use intervalo de <b>5 minutos ou mais</b> e pause os envios que já foram agendados.</p>
+      <p>Se a aba fixada da Central de Vendedores for fechada, ela é reaberta na próxima verificação.</p>
+    </div>
+
+    <div class="section-head"><span>Algo deu errado?</span></div>
+    <div class="group prose">
+      <p>Abra <b>Registro → Copiar técnico</b> e envie o texto em uma <a href="#" data-open="https://github.com/GustavoCavalheiro/vagas-full/issues">issue no GitHub</a>. Apague dados pessoais antes.</p>
+    </div>
+
+    <div class="section-head"><span>Colaborar</span></div>
+    <div class="group">
+      <div class="prose"><p>A Vagas Full é gratuita. Se ela te ajudou, considere apoiar o projeto com um Pix de qualquer valor.</p></div>
+      <div class="row"><span class="lbl">Chave Pix (CPF)</span><span class="pix" id="pixKey">128.875.579-12</span><button class="chip" id="copyPix">Copiar</button></div>
+    </div>
+    <p class="thanks">Obrigado ♥</p>
+  </div>
+</section>
 
 <main>
   <div id="newSection">

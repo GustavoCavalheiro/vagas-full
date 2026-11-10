@@ -36,7 +36,7 @@ async function schedule() {
   await chrome.alarms.clear(ALARM);
   const { monitors, settings } = await load();
   if (!monitors.some((m) => m.active)) { await chrome.storage.local.set({ nextCheck: null }); return; }
-  const base = Math.max(3, Number(settings.intervalMin) || 5);
+  const base = Math.max(1, Number(settings.intervalMin) || 5);
   const delay = base * (0.8 + Math.random() * 0.4);
   chrome.alarms.create(ALARM, { delayInMinutes: delay });
   await chrome.storage.local.set({ nextCheck: Date.now() + delay * 60000 });

@@ -192,7 +192,9 @@ $('list').addEventListener('click', async (e) => {
 async function render() {
   const d = await chrome.storage.local.get(['monitors', 'settings', 'log', 'nextCheck']);
   const s = { intervalMin: 5, sound: true, telegramToken: '', telegramChat: '', ...(d.settings || {}) };
-  interval = Number(s.intervalMin) || 5; paintInterval();
+  interval = Number(s.intervalMin) || 5;
+  if (![1, 2, 3, 5, 10].includes(interval)) { interval = 10; saveSettings(); } // quem tinha 15 passa para 10
+  paintInterval();
   $('sound').checked = s.sound !== false;
   ['telegramToken', 'telegramChat'].forEach((k) => { if (document.activeElement !== $(k)) $(k).value = s[k] || ''; });
 

@@ -138,25 +138,45 @@ $('loadCarriers').onclick = async () => {
 };
 
 // ---------- centro de distribuição ----------
-function fillWarehouses(list) {
+const whLabel = (w) => `${w.id}${w.title && w.title !== w.id ? ' · ' + w.title.replace(/^Centro log[ií]stico\s*/i, '') : ''}`;
+function fillWarehouses(list, placeholder = 'Padrão') {
   const cur = $('warehouse').value;
-  $('warehouse').innerHTML = '<option value="">Qualquer</option>' +
-    (list || []).map((w) => `<option value="${esc(w.id)}">${esc(w.id)}${w.title && w.title !== w.id ? ' · ' + esc(w.title.replace(/^Centro log[ií]stico\s*/i, '')) : ''}</option>`).join('');
+  list = list || [];
+  // Com um CD só, ele já aparece selecionado; com vários, "Padrão" aceita qualquer um deles
+  $('warehouse').innerHTML = (list.length === 1 ? '' : `<option value="">${esc(placeholder)}</option>`) +
+    list.map((w) => `<option value="${esc(w.id)}">${esc(whLabel(w))}</option>`).join('');
   if ([...$('warehouse').options].some((o) => o.value === cur)) $('warehouse').value = cur;
 }
-$('loadWh').onclick = async () => {
+let whKey = '';
+async function loadWarehouses(manual = false) {
   const shipment = $('shipment').value.replace(/\D/g, '');
-  if (!shipment) { toast('Informe o número do envio'); $('shipment').focus(); return; }
-  const type = $('type').value === 'other' ? $('typeOther').value.trim() : $('type').value;
+  if (!shipment) { if (manual) { toast('Informe o número do envio'); $('shipment').focus(); } return; }
+  const type = ($('type').value === 'other' ? $('typeOther').value.trim() : $('type').value) || 'ftl';
+  const key = shipment + '|' + type;
+  if (!manual && key === whKey) return;
+  whKey = key;
   $('loadWh').disabled = true;
-  await send({ type: 'warehouses', shipment, shipmentType: type || 'ftl' });
+  fillWarehouses([], 'Buscando…');
+  await send({ type: 'warehouses', shipment, shipmentType: type });
   $('loadWh').disabled = false;
+  if (whKey !== key) return; // o usuário mudou o envio enquanto buscava
   const { warehousesResult: r } = await chrome.storage.local.get('warehousesResult');
   if (r && r.ok && r.list.length) {
     fillWarehouses(r.list);
-    toast(r.list.length === 1 ? `Só um CD disponível: ${r.list[0].id}` : `${r.list.length} CDs encontrados`);
-  } else toast(r && r.login ? 'Entre na Central de Vendedores' : 'Nenhum CD encontrado para este envio');
-};
+    if (r.list.length > 1) toast(`${r.list.length} CDs disponíveis para este envio`);
+  } else {
+    fillWarehouses([]);
+    if (manual || (r && r.login)) toast(r && r.login ? 'Entre na Central de Vendedores' : 'Nenhum CD encontrado para este envio');
+  }
+}
+$('loadWh').onclick = () => loadWarehouses(true);
+let whTimer;
+$('shipment').addEventListener('input', () => {
+  clearTimeout(whTimer);
+  if ($('shipment').value.replace(/\D/g, '').length >= 8) whTimer = setTimeout(() => loadWarehouses(), 700);
+});
+$('shipment').addEventListener('change', () => loadWarehouses());
+$('type').addEventListener('change', () => loadWarehouses());
 
 function selectedCarrier() {
   const v = $('carrierSel').value;
@@ -173,7 +193,7 @@ function selectedCarrier() {
 $('useTab').onclick = async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const m = tab && tab.url && tab.url.match(/inbounds\/(\d+)/);
-  if (m) { $('shipment').value = m[1]; toast(`Envio ${m[1]}`); }
+  if (m) { $('shipment').value = m[1]; toast(`Envio ${m[1]}`); loadWarehouses(); }
   else toast('Abra a página do envio no Mercado Livre');
 };
 
@@ -204,6 +224,7 @@ $('add').onclick = async () => {
   });
   $('add').disabled = false; $('add').textContent = 'Adicionar';
   $('shipment').value = '';
+  whKey = ''; fillWarehouses([]);
   toast('Monitoramento adicionado');
 };
 

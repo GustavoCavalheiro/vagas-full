@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vagas Full – Mercado Livre",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Monitora e agenda vagas de envio ao Full do Mercado Livre pelo número do envio.",
   "permissions": ["storage", "alarms", "notifications", "tabs", "offscreen", "scripting"],
   "host_permissions": [

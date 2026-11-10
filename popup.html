@@ -341,8 +341,10 @@
 
     <div class="section-head"><span>Aviso ou automático</span></div>
     <div class="group prose">
-      <p><b>Desligado:</b> quando aparece uma vaga no filtro, você recebe notificação e som (e Telegram, se configurado).</p>
-      <p><b>Agendar automaticamente:</b> a extensão confirma a primeira vaga que atender ao filtro e para de monitorar aquele envio.</p>
+      <p>Tudo depende da chave <b>Agendar automaticamente</b>:</p>
+      <p><b>Chave desligada (só aviso):</b> quando aparece uma vaga no filtro, você recebe notificação e som (e Telegram, se configurado) e agenda você mesmo.</p>
+      <p><b>Chave ligada (automático):</b> a extensão confirma sozinha a primeira vaga que atender ao filtro e para de monitorar aquele envio.</p>
+      <p><b>Centro de distribuição:</b> ao digitar o envio, os CDs disponíveis são carregados. Em <b>Padrão</b>, vale qualquer CD oferecido; escolha um para aceitar só ele.</p>
       <p><b>Datas preferidas</b> são testadas primeiro, na ordem digitada. Com <b>Somente preferidas</b>, nenhuma outra data é aceita.</p>
     </div>
 
@@ -413,7 +415,7 @@
       <div class="row hidden carrierManual"><label for="carrierName">Nome</label><input id="carrierName"></div>
       <div class="row">
         <label for="warehouse">Centro de distribuição</label>
-        <select id="warehouse"><option value="">Qualquer</option></select>
+        <select id="warehouse"><option value="">Padrão</option></select>
         <button class="chip" id="loadWh" title="Buscar os CDs deste envio" aria-label="Buscar os CDs deste envio">↻</button>
       </div>
       <div class="row"><span class="lbl">Período</span>

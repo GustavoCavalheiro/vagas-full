@@ -101,6 +101,7 @@ function pickSlot(mon, slots) {
     if (mon.dateTo && s.l.date > mon.dateTo) return false;
     if (mon.timeFrom && s.l.time < mon.timeFrom) return false;
     if (mon.timeTo && s.l.time > mon.timeTo) return false;
+    if (mon.warehouse && s.facility !== mon.warehouse) return false;
     return true;
   }).sort((a, b) => a.start.localeCompare(b.start));
   if (!ok.length) return { candidates: ok, best: null };
@@ -265,6 +266,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       await saveMonitors(monitors); await schedule();
     },
     async checkNow() { await runAll(); await schedule(); },
+    async warehouses() {
+      const tabId = await getMLTab();
+      const r = await chrome.tabs.sendMessage(tabId, { type: 'af-check', monitor: { shipment: msg.shipment, type: msg.shipmentType } });
+      await chrome.storage.local.set({ warehousesResult: { ok: !!(r && r.ok), list: (r && r.warehouses) || [], login: !!(r && r.login) } });
+    },
     async carriers() {
       const tabId = await getMLTab();
       const r = await chrome.tabs.sendMessage(tabId, { type: 'af-carriers', shipment: msg.shipment });

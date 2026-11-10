@@ -13,7 +13,7 @@
 ## O que faz
 
 - Consulta a agenda do seu envio ao Full em intervalos regulares (1, 2, 3, 5 ou 10 minutos).
-- Filtra por período, datas preferidas e faixa de horário.
+- Filtra por centro de distribuição, período, datas preferidas e faixa de horário.
 - **Só aviso:** notificação no computador, som e, se quiser, mensagem no Telegram.
 - **Agendamento automático (opcional):** confirma a primeira vaga que atender ao filtro, do mesmo jeito que a tela do Mercado Livre faz.
 - Aceita várias formas de envio: veículo particular, coleta, transportadora (com escolha da transportadora) e fornecedor.

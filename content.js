@@ -108,7 +108,18 @@
       owner_id: p.owner_id,
       entity_id: p.entity_id
     }));
-    return { ok: r.ok, status: r.status, slots, stepToken: found.stepToken, raw: text.slice(0, 4000) };
+    // Centros de distribuição oferecidos para o envio (availability[].node)
+    const warehouses = [];
+    (Array.isArray(data.availability) ? data.availability : []).forEach((a) => {
+      const n = a && a.node;
+      if (n && n.id && !warehouses.some((w) => w.id === n.id)) {
+        warehouses.push({ id: n.id, title: n.title || n.id, city: n.city_name || '', state: n.state_name || '' });
+      }
+    });
+    slots.forEach((s) => {
+      if (s.facility && !warehouses.some((w) => w.id === s.facility)) warehouses.push({ id: s.facility, title: s.facility });
+    });
+    return { ok: r.ok, status: r.status, slots, warehouses, stepToken: found.stepToken, raw: text.slice(0, 4000) };
   }
 
   async function confirm(job) {

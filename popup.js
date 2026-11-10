@@ -19,6 +19,38 @@ function toast(msg) {
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2600);
 }
 
+// ---------- alerta de confirmação ----------
+function askConfirm({ title, message, ok = 'OK', danger = false }) {
+  return new Promise((resolve) => {
+    const scrim = $('alertScrim');
+    const back = document.activeElement;
+    $('alertTitle').textContent = title;
+    $('alertMsg').textContent = message;
+    $('alertOk').textContent = ok;
+    $('alertOk').classList.toggle('danger', danger);
+    scrim.hidden = false;
+    requestAnimationFrame(() => scrim.classList.add('show'));
+    $('alertOk').focus();
+    const done = (val) => {
+      scrim.classList.remove('show');
+      setTimeout(() => { scrim.hidden = true; }, 180);
+      document.removeEventListener('keydown', key, true);
+      $('alertOk').onclick = $('alertCancel').onclick = scrim.onclick = null;
+      if (back && back.focus) back.focus({ preventScroll: true });
+      resolve(val);
+    };
+    const key = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(false); }
+      if (e.key === 'Enter') { e.preventDefault(); done(document.activeElement !== $('alertCancel')); }
+      if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === $('alertOk') ? $('alertCancel') : $('alertOk')).focus(); }
+    };
+    document.addEventListener('keydown', key, true);
+    $('alertOk').onclick = () => done(true);
+    $('alertCancel').onclick = () => done(false);
+    scrim.onclick = (e) => { if (e.target === scrim) done(false); };
+  });
+}
+
 // ---------- barra de título ----------
 $('lClose').onclick = () => window.close();
 $('lMin').onclick = () => $('newSection').classList.toggle('collapsed');
@@ -105,6 +137,27 @@ $('loadCarriers').onclick = async () => {
   }
 };
 
+// ---------- centro de distribuição ----------
+function fillWarehouses(list) {
+  const cur = $('warehouse').value;
+  $('warehouse').innerHTML = '<option value="">Qualquer</option>' +
+    (list || []).map((w) => `<option value="${esc(w.id)}">${esc(w.id)}${w.title && w.title !== w.id ? ' · ' + esc(w.title.replace(/^Centro log[ií]stico\s*/i, '')) : ''}</option>`).join('');
+  if ([...$('warehouse').options].some((o) => o.value === cur)) $('warehouse').value = cur;
+}
+$('loadWh').onclick = async () => {
+  const shipment = $('shipment').value.replace(/\D/g, '');
+  if (!shipment) { toast('Informe o número do envio'); $('shipment').focus(); return; }
+  const type = $('type').value === 'other' ? $('typeOther').value.trim() : $('type').value;
+  $('loadWh').disabled = true;
+  await send({ type: 'warehouses', shipment, shipmentType: type || 'ftl' });
+  $('loadWh').disabled = false;
+  const { warehousesResult: r } = await chrome.storage.local.get('warehousesResult');
+  if (r && r.ok && r.list.length) {
+    fillWarehouses(r.list);
+    toast(r.list.length === 1 ? `Só um CD disponível: ${r.list[0].id}` : `${r.list.length} CDs encontrados`);
+  } else toast(r && r.login ? 'Entre na Central de Vendedores' : 'Nenhum CD encontrado para este envio');
+};
+
 function selectedCarrier() {
   const v = $('carrierSel').value;
   if (v === 'manual') {
@@ -133,13 +186,17 @@ $('add').onclick = async () => {
   if (type === 'ftlp' && !carrier) { toast('Escolha a transportadora'); return; }
   if ($('dateFrom').value && $('dateTo').value && $('dateFrom').value > $('dateTo').value) { toast('Período inválido'); return; }
   const autoBook = $('autoBook').checked;
-  if (autoBook && !confirm(`Agendar o envio ${shipment} automaticamente na primeira vaga encontrada?`)) return;
+  if (autoBook && !(await askConfirm({
+    title: 'Agendar automaticamente?',
+    message: `O envio ${shipment} será agendado na primeira vaga que atender ao filtro.`,
+    ok: 'Agendar'
+  }))) return;
 
   $('add').disabled = true; $('add').textContent = 'Verificando…';
   await send({
     type: 'add',
     monitor: {
-      shipment, type, autoBook, carrier,
+      shipment, type, autoBook, carrier, warehouse: $('warehouse').value,
       dateFrom: $('dateFrom').value, dateTo: $('dateTo').value,
       preferred: $('preferred').value.trim(), onlyPreferred: $('onlyPreferred').checked,
       timeFrom: $('timeFrom').value, timeTo: $('timeTo').value
@@ -194,7 +251,12 @@ $('copyTech').onclick = stop(async () => {
 $('list').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b) return;
-  if (b.dataset.act === 'remove' && !confirm('Remover este monitoramento?')) return;
+  if (b.dataset.act === 'remove' && !(await askConfirm({
+    title: 'Remover monitoramento?',
+    message: 'Este envio deixará de ser verificado.',
+    ok: 'Remover',
+    danger: true
+  }))) return;
   await send({ type: b.dataset.act, id: b.dataset.id });
 });
 
@@ -221,7 +283,7 @@ async function render() {
         <button class="link danger" data-act="remove" data-id="${m.id}">Remover</button>
       </span>
       <span class="sub">${esc(m.status || '')}</span>
-      <span class="sub">${esc(forma)}${m.carrier ? ' · ' + esc(m.carrier.name || m.carrier.cnpj) : ''} · ${esc(periodo)} · ${m.autoBook ? 'automático' : 'só aviso'} · ${hora(m.lastCheck)}</span>
+      <span class="sub">${esc(forma)}${m.carrier ? ' · ' + esc(m.carrier.name || m.carrier.cnpj) : ''}${m.warehouse ? ' · ' + esc(m.warehouse) : ''} · ${esc(periodo)} · ${m.autoBook ? 'automático' : 'só aviso'} · ${hora(m.lastCheck)}</span>
     </div>`;
   }).join('') : '<div class="empty">Nenhum envio</div>';
 

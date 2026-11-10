@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Vagas Full – Mercado Livre",
+  "version": "1.0.0",
+  "description": "Monitora e agenda vagas de envio ao Full do Mercado Livre pelo número do envio.",
+  "permissions": ["storage", "alarms", "notifications", "tabs", "offscreen", "scripting"],
+  "host_permissions": [
+    "https://vendedores.mercadolivre.com.br/*",
+    "https://api.telegram.org/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://vendedores.mercadolivre.com.br/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+  },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+}

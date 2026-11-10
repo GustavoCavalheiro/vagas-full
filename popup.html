@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vagas Full</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #a1a1a6;
+    --sep: rgba(60, 60, 67, .14);
+    --fill: rgba(118, 118, 128, .12);
+    --accent: #007aff;
+    --green: #34c759;
+    --red: #ff3b30;
+    --orange: #ff9f0a;
+    --bar: rgba(245, 245, 247, .72);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 0 0 .5px rgba(0, 0, 0, .04);
+    --spring: cubic-bezier(.32, .72, 0, 1);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --text: #f5f5f7;
+      --text-2: #98989d;
+      --text-3: #636366;
+      --sep: rgba(84, 84, 88, .55);
+      --fill: rgba(118, 118, 128, .24);
+      --accent: #0a84ff;
+      --green: #30d158;
+      --red: #ff453a;
+      --orange: #ff9f0a;
+      --bar: rgba(22, 22, 24, .72);
+      --shadow: none;
+    }
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    width: 380px; min-height: 200px; background: var(--bg); color: var(--text);
+    font: 13px/1.38 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; letter-spacing: -.003em;
+  }
+  body.tab { margin: 24px auto; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+
+  /* ---------- barra de título ---------- */
+  .titlebar {
+    position: sticky; top: 0; z-index: 10; height: 44px;
+    display: grid; grid-template-columns: 70px 1fr 70px; align-items: center;
+    background: var(--bar); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: .5px solid transparent; transition: border-color .2s;
+  }
+  .titlebar.scrolled { border-bottom-color: var(--sep); }
+  .lights { display: flex; gap: 8px; padding-left: 14px; }
+  .light {
+    width: 12px; height: 12px; border-radius: 50%; border: 0; padding: 0; cursor: default;
+    display: grid; place-items: center; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.12);
+  }
+  .light svg { width: 6px; height: 6px; opacity: 0; transition: opacity .1s; }
+  .lights:hover .light svg { opacity: .55; }
+  .light:active { filter: brightness(.85); }
+  .l-red { background: #ff5f57; } .l-yellow { background: #febc2e; } .l-green { background: #28c840; }
+  .title { text-align: center; font-weight: 600; font-size: 13px; letter-spacing: -.01em; }
+
+  main { padding: 6px 16px 18px; }
+
+  /* ---------- grupos ---------- */
+  .section-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 18px 4px 6px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2);
+  }
+  .group { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .row {
+    display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 6px 12px;
+    position: relative;
+  }
+  .row + .row::before {
+    content: ""; position: absolute; top: 0; left: 12px; right: 0; height: .5px; background: var(--sep);
+  }
+  .row > label, .row > .lbl { flex: 1; color: var(--text); white-space: nowrap; }
+  .row.hidden { display: none; }
+
+  input, select {
+    font: inherit; color: var(--text); background: transparent; border: 0; outline: 0;
+    text-align: right; min-width: 0; padding: 4px 0;
+  }
+  input::placeholder { color: var(--text-3); }
+  input[type="text"], input:not([type]) { flex: 1.4; }
+  input[type="date"], input[type="time"] { color: var(--text); }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator { opacity: .45; cursor: pointer; }
+  @media (prefers-color-scheme: dark) {
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+  }
+  select {
+    appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 16px; text-align-last: right;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12'%3E%3Cpath d='M1 4.5 4 1.5l3 3M1 7.5l3 3 3-3' fill='none' stroke='%238e8e93' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right center no-repeat;
+  }
+  select option { color: #1d1d1f; }
+  .range { display: flex; align-items: center; gap: 4px; color: var(--text-3); }
+  .range input[type="date"] { width: 112px; }
+  .range input[type="time"] { width: 76px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  input:focus-visible, select:focus-visible { outline: 0; color: var(--accent); }
+
+  /* chave liga/desliga */
+  .switch {
+    appearance: none; -webkit-appearance: none; flex: none; width: 42px; height: 26px; border-radius: 13px; margin: 0;
+    background: var(--fill); position: relative; cursor: pointer; transition: background .25s var(--spring); padding: 0;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.04);
+    transition: transform .3s var(--spring);
+  }
+  .switch:checked { background: var(--green); }
+  .switch:checked::after { transform: translateX(16px); }
+  .switch:active::after { width: 26px; }
+  .switch:checked:active::after { transform: translateX(12px); }
+
+  /* botões */
+  button { font: inherit; cursor: pointer; }
+  .btn {
+    width: 100%; margin-top: 12px; height: 38px; border: 0; border-radius: 10px;
+    background: var(--accent); color: #fff; font-weight: 600; letter-spacing: -.01em;
+    transition: transform .12s ease-out, opacity .12s;
+  }
+  .btn:active { transform: scale(.97); opacity: .85; }
+  .btn:disabled { opacity: .5; }
+  .btn.plain { background: var(--card); color: var(--accent); box-shadow: var(--shadow); }
+  .link {
+    border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500;
+    text-transform: none; letter-spacing: 0; font-size: 12px;
+  }
+  .link:active { opacity: .5; }
+  .link.danger { color: var(--red); }
+  .chip {
+    border: 0; background: var(--fill); color: var(--accent); border-radius: 7px; padding: 3px 8px; font-size: 12px; font-weight: 500;
+  }
+  .chip:active { transform: scale(.95); }
+
+  /* controle segmentado */
+  .seg { display: flex; background: var(--fill); border-radius: 8px; padding: 2px; gap: 2px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--text); border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500;
+    transition: background .2s var(--spring), box-shadow .2s;
+  }
+  .seg button.on { background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); }
+  @media (prefers-color-scheme: dark) { .seg button.on { background: #636366; } }
+
+  /* monitoramentos */
+  .mon { padding: 10px 12px; display: grid; grid-template-columns: 10px 1fr auto; gap: 2px 10px; align-items: center; position: relative; }
+  .mon + .mon::before { content: ""; position: absolute; top: 0; left: 32px; right: 0; height: .5px; background: var(--sep); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+  .dot.on { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 22%, transparent); animation: pulse 2.4s ease-in-out infinite; }
+  .dot.done { background: var(--accent); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 0%, transparent); } }
+  .mon .name { font-weight: 600; letter-spacing: -.01em; }
+  .mon .sub { grid-column: 2 / 4; color: var(--text-2); font-size: 12px; }
+  .mon .acts { display: flex; gap: 12px; }
+  .empty { padding: 22px 12px; text-align: center; color: var(--text-3); }
+  .meta { color: var(--text-2); font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+  /* registro */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  .chev { display: inline-block; transition: transform .25s var(--spring); margin-right: 4px; }
+  details[open] .chev { transform: rotate(90deg); }
+  .log { max-height: 180px; overflow: auto; }
+  .log .row { display: block; font-size: 12px; }
+  .log time { display: block; color: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  /* aviso rápido */
+  .toast {
+    position: fixed; left: 50%; bottom: 14px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: rgba(30,30,32,.86); color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 12px; max-width: 320px; text-align: center;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    transition: transform .35s var(--spring), opacity .2s;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  footer { display: flex; justify-content: center; color: var(--text-3); font-size: 11px; padding: 0 0 14px; }
+
+  .collapsed { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .titlebar { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  }
+</style>
+</head>
+<body>
+<div class="titlebar" id="titlebar">
+  <div class="lights">
+    <button class="light l-red" id="lClose" title="Fechar" aria-label="Fechar">
+      <svg viewBox="0 0 6 6"><path d="M1 1l4 4M5 1 1 5" stroke="#4d0000" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="light l-yellow" id="lMin" title="Recolher cadastro" aria-label="Recolher cadastro">
+      <svg viewBox="0 0 6 6"><path d="M1 3h4" stroke="#5c3a00" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="light l-green" id="lMax" title="Abrir em uma aba" aria-label="Abrir em uma aba">
+      <svg viewBox="0 0 6 6"><path d="M1.2 4.8V2.2l2.6 2.6zM4.8 1.2v2.6L2.2 1.2z" fill="#0b4d0b"/></svg>
+    </button>
+  </div>
+  <div class="title">Vagas Full</div>
+  <div></div>
+</div>
+
+<main>
+  <div id="newSection">
+    <div class="section-head"><span>Novo monitoramento</span><button class="link" id="useTab">Usar aba atual</button></div>
+    <div class="group">
+      <div class="row"><label for="shipment">Envio</label><input id="shipment" inputmode="numeric" placeholder="Número"></div>
+      <div class="row">
+        <label for="type">Forma de envio</label>
+        <select id="type">
+          <option value="ftl">Veículo particular</option>
+          <option value="pickup">Coleta</option>
+          <option value="ftlp">Transportadora</option>
+          <option value="supplier">Fornecedor</option>
+          <option value="other">Outro código</option>
+        </select>
+      </div>
+      <div class="row hidden" id="rowTypeOther"><label for="typeOther">Código</label><input id="typeOther" placeholder="ftl"></div>
+      <div class="row hidden" id="rowCarrier">
+        <label for="carrierSel">Transportadora</label>
+        <select id="carrierSel"><option value="">Escolher</option><option value="manual">Digitar</option></select>
+        <button class="chip" id="loadCarriers" title="Carregar da conta">↻</button>
+      </div>
+      <div class="row hidden carrierManual"><label for="carrierId">ID</label><input id="carrierId" inputmode="numeric" placeholder="235"></div>
+      <div class="row hidden carrierManual"><label for="carrierCnpj">CNPJ</label><input id="carrierCnpj" inputmode="numeric" placeholder="Somente números"></div>
+      <div class="row hidden carrierManual"><label for="carrierIe">Inscrição estadual</label><input id="carrierIe" inputmode="numeric"></div>
+      <div class="row hidden carrierManual"><label for="carrierName">Nome</label><input id="carrierName"></div>
+      <div class="row"><span class="lbl">Período</span>
+        <span class="range"><input type="date" id="dateFrom" aria-label="De"> – <input type="date" id="dateTo" aria-label="Até"></span>
+      </div>
+      <div class="row"><label for="preferred">Datas preferidas</label><input id="preferred" placeholder="22/11, 23/11"></div>
+      <div class="row"><label for="onlyPreferred">Somente preferidas</label><input type="checkbox" class="switch" id="onlyPreferred"></div>
+      <div class="row"><span class="lbl">Horário</span>
+        <span class="range"><input type="time" id="timeFrom" aria-label="A partir de"> – <input type="time" id="timeTo" aria-label="Até"></span>
+      </div>
+      <div class="row"><label for="autoBook">Agendar automaticamente</label><input type="checkbox" class="switch" id="autoBook"></div>
+    </div>
+    <button class="btn" id="add">Adicionar</button>
+  </div>
+
+  <div class="section-head"><span>Monitoramentos <span class="meta" id="next"></span></span><button class="link" id="checkNow">Verificar agora</button></div>
+  <div class="group" id="list"><div class="empty">Nenhum envio</div></div>
+
+  <div class="section-head"><span>Ajustes</span></div>
+  <div class="group">
+    <div class="row"><span class="lbl">Intervalo</span>
+      <div class="seg" id="interval">
+        <button data-v="3">3 min</button><button data-v="5">5 min</button><button data-v="10">10 min</button><button data-v="15">15 min</button>
+      </div>
+    </div>
+    <div class="row"><label for="sound">Som</label><input type="checkbox" class="switch" id="sound"></div>
+    <div class="row"><label for="telegramToken">Telegram token</label><input id="telegramToken" placeholder="Opcional"></div>
+    <div class="row"><label for="telegramChat">Telegram chat ID</label><input id="telegramChat" placeholder="Opcional"></div>
+    <div class="row"><span class="lbl">Notificação</span><button class="chip" id="test">Testar</button></div>
+  </div>
+
+  <details id="logBox">
+    <summary class="section-head"><span><span class="chev">›</span>Registro</span>
+      <span><button class="link" id="copyTech">Copiar técnico</button>&nbsp;&nbsp;<button class="link" id="clearLog">Limpar</button></span>
+    </summary>
+    <div class="group log" id="log"><div class="empty">Vazio</div></div>
+  </details>
+</main>
+<footer id="ver"></footer>
+<div class="toast" id="toast" role="status"></div>
+<script src="popup.js"></script>
+</body>
+</html>

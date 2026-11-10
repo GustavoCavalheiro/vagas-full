@@ -21,7 +21,7 @@
 
 ## Instalação
 
-1. Baixe este repositório (**Code → Download ZIP**) e descompacte.
+1. Baixe o arquivo `.zip` da [versão mais recente](https://github.com/GustavoCavalheiro/vagas-full/releases/latest) e descompacte.
 2. No Chrome, abra `chrome://extensions`.
 3. Ative o **Modo do desenvolvedor**, no canto superior direito.
 4. Clique em **Carregar sem compactação** e selecione a pasta descompactada.

@@ -45,6 +45,17 @@ $('copyPix').onclick = async () => {
   setTimeout(() => { $('copyPix').textContent = 'Copiar'; }, 1800);
 };
 
+// ---------- datas vazias mostram tracinhos ----------
+function syncDates() {
+  document.querySelectorAll('.dt').forEach((w) => w.classList.toggle('is-empty', !w.querySelector('input').value));
+}
+document.querySelectorAll('.dt input').forEach((i) => ['input', 'change', 'blur'].forEach((ev) => i.addEventListener(ev, syncDates)));
+// Clicar nos tracinhos abre o calendário
+document.querySelectorAll('.dt').forEach((w) => w.addEventListener('click', (e) => {
+  const i = w.querySelector('input');
+  if (e.target !== i) { try { i.showPicker(); } catch (err) { i.focus(); } }
+}));
+
 // ---------- forma de envio ----------
 const show = (el, on) => el.classList.toggle('hidden', !on);
 function syncType() {

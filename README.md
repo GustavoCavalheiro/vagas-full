@@ -10,6 +10,12 @@
 
 ---
 
+> [!WARNING]
+> **Leia antes de usar.** Esta extensão é um projeto independente e **não tem nenhum vínculo com o Mercado Livre**.
+> Os Termos e Condições do Mercado Livre restringem o uso de ferramentas automatizadas na plataforma.
+> Ao instalar e usar a Vagas Full, **você assume integralmente os riscos**. O autor **não se responsabiliza** por bloqueios, suspensões, banimentos, perda de vendas, agendamentos incorretos ou qualquer outro prejuízo decorrente do uso.
+> Recomendamos intervalos de **5 minutos ou mais** e monitorar apenas os envios que realmente precisam de vaga.
+
 ## O que faz
 
 - Consulta a agenda do seu envio ao Full em intervalos regulares (1, 2, 3, 5 ou 10 minutos).
@@ -73,8 +79,7 @@ O Mercado Livre pode mudar o sistema a qualquer momento. Abra a extensão, vá e
 
 ## Avisos
 
-- Projeto independente, **sem qualquer vínculo com o Mercado Livre**.
-- Os Termos do Mercado Livre restringem o uso de ferramentas automatizadas. Use por sua conta e risco.
+- Projeto independente, **sem qualquer vínculo com o Mercado Livre**. O autor não se responsabiliza por bloqueios, suspensões ou banimentos de conta.
 - Prefira intervalos de **5 minutos ou mais**, monitore só os envios que precisam e pause depois de agendar.
 - O agendamento automático confirma de verdade na sua conta. Confira o filtro antes de ligar.
 

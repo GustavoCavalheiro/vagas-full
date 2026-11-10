@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="icon128.png" width="96" alt="Vagas Full">
-</p>
-
 <h1 align="center">Vagas Full</h1>
 
 <p align="center">

@@ -25,15 +25,24 @@ $('lMin').onclick = () => $('newSection').classList.toggle('collapsed');
 $('lMax').onclick = () => { chrome.tabs.create({ url: chrome.runtime.getURL('popup.html?tab=1') }); window.close(); };
 window.addEventListener('scroll', () => $('titlebar').classList.toggle('scrolled', scrollY > 4), { passive: true });
 
-// ---------- ajuda ----------
-function setHelp(open) {
-  $('help').classList.toggle('open', open);
-  $('help').setAttribute('aria-hidden', String(!open));
-  if (open) { $('help').scrollTop = 0; $('helpBack').focus({ preventScroll: true }); } else $('helpBtn').focus({ preventScroll: true });
+// ---------- telas deslizantes (ajuda e colaborar) ----------
+let sheetOpener = null;
+function openSheet(id, opener) {
+  const s = $(id);
+  sheetOpener = opener;
+  s.classList.add('open');
+  s.setAttribute('aria-hidden', 'false');
+  s.scrollTop = 0;
+  s.querySelector('[data-close]').focus({ preventScroll: true });
 }
-$('helpBtn').onclick = () => setHelp(true);
-$('helpBack').onclick = () => setHelp(false);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('help').classList.contains('open')) setHelp(false); });
+function closeSheets() {
+  document.querySelectorAll('.sheet.open').forEach((s) => { s.classList.remove('open'); s.setAttribute('aria-hidden', 'true'); });
+  if (sheetOpener) sheetOpener.focus({ preventScroll: true });
+}
+$('helpBtn').onclick = () => openSheet('help', $('helpBtn'));
+$('donateBtn').onclick = () => openSheet('donate', $('donateBtn'));
+document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeSheets));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.querySelector('.sheet.open')) closeSheets(); });
 $('help').addEventListener('click', (e) => {
   const a = e.target.closest('a[data-open]');
   if (a) { e.preventDefault(); chrome.tabs.create({ url: a.dataset.open }); }

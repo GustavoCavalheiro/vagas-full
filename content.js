@@ -22,27 +22,45 @@
     } catch (e) { return null; }
   }
 
+  // Aceita "2026-11-12T08:00:00..." ou "2026-11-12" + "08:00"
+  function isoOf(v) {
+    return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? (v.length >= 16 ? v : v.slice(0, 10) + 'T00:00:00') : null;
+  }
+  function joinDate(d, t) {
+    if (typeof d !== 'string' || typeof t !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(d) || !/^\d{1,2}:\d{2}/.test(t)) return null;
+    return d.slice(0, 10) + 'T' + t.padStart(5, '0').slice(0, 5) + ':00';
+  }
+
   // Varre a resposta inteira procurando os slot_id (JWT) e o step_token
-  function walk(node, found, depth = 0) {
+  function walk(node, found, depth = 0, cd = null) {
     if (depth > 40 || node == null) return;
     if (typeof node === 'string') {
+      // Códigos de CD do ML (BRSP01, BRSC02...) para quando a vaga não diz o CD
+      if (found.cds && /^BR[A-Z]{2,4}\d{1,2}$/.test(node)) found.cds.add(node);
       if (/^eyJ[\w-]+\.eyJ[\w-]+\.[\w-]+$/.test(node) && !found.slots.has(node)) {
         const p = b64urlJson(node.split('.')[1]);
-        if (p && p.date_start) found.slots.set(node, { p, obj: null });
+        if (p && p.date_start) found.slots.set(node, { p, obj: null, cd });
       }
       return;
     }
-    if (Array.isArray(node)) { node.forEach((n) => walk(n, found, depth + 1)); return; }
+    if (Array.isArray(node)) { node.forEach((n) => walk(n, found, depth + 1, cd)); return; }
     if (typeof node === 'object') {
+      // Guarda o CD do bloco atual (availability[].node.id) para vagas que não trazem facility_id
+      if (node.node && typeof node.node === 'object' && node.node.id) cd = node.node.id;
       // Vaga completa como o ML devolve (slot_id, slot_date, from, to, resource_id...)
-      if (typeof node.slot_id === 'string' && /^eyJ/.test(node.slot_id) && !found.slots.has(node.slot_id)) {
-        const p = b64urlJson(node.slot_id.split('.')[1] || '');
-        if (p && p.date_start) found.slots.set(node.slot_id, { p, obj: { ...node } });
+      // (na Coleta o slot_id pode não ser JWT ou não trazer date_start: usa from/to/slot_date)
+      if (node.slot_id != null && !found.slots.has(String(node.slot_id))) {
+        const id = String(node.slot_id);
+        const jwt = /^eyJ/.test(id) ? b64urlJson(id.split('.')[1] || '') : null;
+        const p = { ...(jwt || {}) };
+        if (!p.date_start) p.date_start = joinDate(node.slot_date, node.from) || joinDate(node.date, node.from) || isoOf(node.from) || isoOf(node.date_from) || isoOf(node.start) || isoOf(node.slot_date);
+        if (!p.date_end) p.date_end = joinDate(node.slot_date, node.to) || isoOf(node.to) || isoOf(node.date_to) || isoOf(node.end) || p.date_start;
+        if (p.date_start) found.slots.set(id, { p, obj: { ...node }, cd });
       }
       for (const [k, v] of Object.entries(node)) {
         // O token da confirmação vem como "availability_ref_id" na consulta de vagas
         if (/step_?token|availability_ref_id/i.test(k) && typeof v === 'string' && v.length >= 16 && !found.stepToken) found.stepToken = v;
-        walk(v, found, depth + 1);
+        walk(v, found, depth + 1, cd);
       }
     }
   }
@@ -96,14 +114,14 @@
     try { data = JSON.parse(text); } catch (e) {
       return { ok: false, status: r.status, error: 'Resposta não é JSON', raw: text.slice(0, 1500) };
     }
-    const found = { slots: new Map(), stepToken: null };
+    const found = { slots: new Map(), stepToken: null, cds: new Set() };
     walk(data, found);
-    const slots = [...found.slots.entries()].map(([slot_id, { p, obj }]) => ({
+    const slots = [...found.slots.entries()].map(([slot_id, { p, obj, cd }]) => ({
       slot_id,
       appointment: obj,
       start: p.date_start,
       end: p.date_end,
-      facility: p.facility_id,
+      facility: p.facility_id || cd || (obj && (obj.facility_id || obj.warehouse_id || obj.node_id)) || null,
       resource_id: p.resource_id,
       owner_id: p.owner_id,
       entity_id: p.entity_id
@@ -116,6 +134,8 @@
         warehouses.push({ id: n.id, title: n.title || n.id, city: n.city_name || '', state: n.state_name || '' });
       }
     });
+    const cdFallback = warehouses.length === 1 ? warehouses[0].id : (found.cds.size === 1 ? [...found.cds][0] : null);
+    slots.forEach((s) => { if (!s.facility && cdFallback) s.facility = cdFallback; });
     slots.forEach((s) => {
       if (s.facility && !warehouses.some((w) => w.id === s.facility)) warehouses.push({ id: s.facility, title: s.facility });
     });

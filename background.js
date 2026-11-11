@@ -175,7 +175,10 @@ async function checkOne(tabId, mon) {
     return;
   }
 
-  const slots = (res.slots || []).filter((s) => !s.entity_id || String(s.entity_id) === String(mon.shipment));
+  // Descarta vagas de outro envio, mas só se o JWT trouxer o envio (na Coleta o entity_id pode ser outro id)
+  const all = res.slots || [];
+  const same = all.filter((s) => !s.entity_id || String(s.entity_id) === String(mon.shipment));
+  const slots = same.length ? same : all;
   const { candidates, best } = pickSlot(mon, slots);
   const checks = (mon.checks || 0) + 1;
   const base = { lastCheck: now, loginWarned: false, checks, totalSlots: slots.length, matching: candidates.length };
@@ -184,7 +187,7 @@ async function checkOne(tabId, mon) {
     await patchMonitor(mon.id, { ...base, status: `Sem vaga no filtro (${slots.length} vagas no total)` });
     return;
   }
-  const label = `${br(best.l.date)} às ${best.le.time} (${best.facility})`;
+  const label = `${br(best.l.date)} às ${best.le.time}` + (best.facility ? ` (${best.facility})` : '');
 
   if (!mon.autoBook) {
     const alerted = mon.alerted || [];
@@ -198,14 +201,20 @@ async function checkOne(tabId, mon) {
 
   // ---- agendar automaticamente ----
   await addLog(`Envio ${mon.shipment}: confirmando ${label} no Mercado Livre`);
+  // Coleta: o endereço vem no próprio slot_id ("crm:{endereço}_{data}") e entra como selected_address
+  const addressId = mon.type === 'pickup'
+    ? Number((String(best.slot_id).match(/^crm:(\d+)_/) || [])[1]) || (best.appointment && (best.appointment.address_id || best.appointment.addressId)) || null
+    : null;
+  const actions = ['CHANGE_SHIPMENT_TYPE', 'CHANGE_APPOINTMENT_DATE'];
+  if (mon.carrier) actions.push('CHANGE_CARRIER_DATA_CNPJ');
+  if (addressId) actions.push('CHANGE_ADDRESS');
   const body = {
     step_token: res.stepToken || null, // se vier vazio, a aba busca em lock-status / inventories-segment / página
     selected_shipment_type: mon.type || 'ftl',
-    actions_attempted: mon.carrier
-      ? ['CHANGE_SHIPMENT_TYPE', 'CHANGE_APPOINTMENT_DATE', 'CHANGE_CARRIER_DATA_CNPJ']
-      : ['CHANGE_SHIPMENT_TYPE', 'CHANGE_APPOINTMENT_DATE'],
+    actions_attempted: actions,
     ...(mon.carrier ? { selected_carrier: mon.carrier } : {}),
-    selected_warehouse: best.facility,
+    ...(addressId ? { selected_address: { id: addressId } } : {}),
+    selected_warehouse: best.facility || null,
     // Usa a vaga exatamente como o ML devolveu; só monta na mão se ela não vier completa
     selected_appointment: best.appointment && best.appointment.from ? { ...best.appointment } : {
       slot_id: best.slot_id,

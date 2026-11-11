@@ -103,6 +103,8 @@ function syncType() {
   const t = $('type').value;
   show($('rowTypeOther'), t === 'other');
   show($('rowCarrier'), t === 'ftlp');
+  // Na coleta a domicílio o ML não mostra CD: esconde o campo
+  show($('rowWarehouse'), t !== 'pickup');
   const manual = t === 'ftlp' && $('carrierSel').value === 'manual';
   document.querySelectorAll('.carrierManual').forEach((r) => show(r, manual));
 }
@@ -152,6 +154,7 @@ async function loadWarehouses(manual = false) {
   const shipment = $('shipment').value.replace(/\D/g, '');
   if (!shipment) { if (manual) { toast('Informe o número do envio'); $('shipment').focus(); } return; }
   const type = ($('type').value === 'other' ? $('typeOther').value.trim() : $('type').value) || 'ftl';
+  if (type === 'pickup') { whKey = ''; fillWarehouses([], 'Padrão'); return; }
   const key = shipment + '|' + type;
   if (!manual && key === whKey) return;
   whKey = key;
@@ -216,7 +219,7 @@ $('add').onclick = async () => {
   await send({
     type: 'add',
     monitor: {
-      shipment, type, autoBook, carrier, warehouse: $('warehouse').value,
+      shipment, type, autoBook, carrier, warehouse: type === 'pickup' ? '' : $('warehouse').value,
       dateFrom: $('dateFrom').value, dateTo: $('dateTo').value,
       preferred: $('preferred').value.trim(), onlyPreferred: $('onlyPreferred').checked,
       timeFrom: $('timeFrom').value, timeTo: $('timeTo').value
